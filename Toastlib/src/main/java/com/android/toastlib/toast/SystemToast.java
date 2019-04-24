@@ -1,8 +1,6 @@
 package com.android.toastlib.toast;
 
 import android.content.Context;
-import android.os.Build;
-import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -20,13 +18,8 @@ public class SystemToast implements IToast {
     }
 
     @Override
-    public void setMessageText(CharSequence s) {
+    public void showToast(CharSequence s) {
         toast.setText(s);
-        Log.i("haozi","setMessageText =="+s);
-    }
-
-    @Override
-    public void showToast() {
         toast.show();
     }
 

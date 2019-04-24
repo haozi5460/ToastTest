@@ -20,7 +20,10 @@ public class ActivityToast extends TopToast {
     }
 
     @Override
-    public void showToast() {
+    public void showToast(CharSequence s) {
+        if(messageView != null){
+            messageView.setText(s);
+        }
         mToastHelper.show();
     }
 }

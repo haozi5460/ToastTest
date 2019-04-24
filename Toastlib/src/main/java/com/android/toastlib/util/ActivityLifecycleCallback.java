@@ -23,13 +23,19 @@ final class ActivityLifecycleCallback implements Application.ActivityLifecycleCa
     private final ArrayMap<String, Activity> mActivitySet = new ArrayMap<>();
 
     // 用于 Activity 暂停时移除 WindowManager
-    private final ActivityToastHelper mToastHelper;
+    private ActivityToastHelper mToastHelper;
+    private ActivityCustomizeToastHandler mToastHandler;
 
     // 当前 Activity 对象标记
     private String mCurrentTag;
 
     ActivityLifecycleCallback(ActivityToastHelper helper, Application application) {
         mToastHelper = helper;
+        application.registerActivityLifecycleCallbacks(this);
+    }
+
+    ActivityLifecycleCallback(ActivityCustomizeToastHandler helper, Application application) {
+        mToastHandler = helper;
         application.registerActivityLifecycleCallbacks(this);
     }
 
@@ -42,8 +48,6 @@ final class ActivityLifecycleCallback implements Application.ActivityLifecycleCa
         if (mCurrentTag != null) {
             // 如果使用的 WindowManager 对象不是当前 Activity 创建的，则会抛出异常
             // android.view.WindowManager$BadTokenException: Unable to add window -- token null is not for an application
-            Log.i("shihao","getWindowManager mCurrentTag =="+mCurrentTag);
-            Log.i("shihao","getWindowManager mActivityset .size =="+mActivitySet.size());
             Activity activity = mActivitySet.get(mCurrentTag);
             if (activity != null) {
                 return getWindowManagerObject(activity);
@@ -59,9 +63,7 @@ final class ActivityLifecycleCallback implements Application.ActivityLifecycleCa
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
         mCurrentTag = getObjectTag(activity);
-        Log.i("shihao","onActivityCreated mCurrentTag =="+mCurrentTag);
         mActivitySet.put(mCurrentTag, activity);
-        Log.i("shihao","onActivityCreated mActivityset .size =="+mActivitySet.size());
     }
 
     @Override
@@ -72,8 +74,6 @@ final class ActivityLifecycleCallback implements Application.ActivityLifecycleCa
     @Override
     public void onActivityResumed(Activity activity) {
         mCurrentTag = getObjectTag(activity);
-        Log.i("shihao","onActivityResumed mCurrentTag =="+mCurrentTag);
-        Log.i("shihao","onActivityResumed mActivityset .size =="+mActivitySet.size());
     }
 
     // A跳转B页面的生命周期方法执行顺序：
@@ -82,7 +82,10 @@ final class ActivityLifecycleCallback implements Application.ActivityLifecycleCa
     @Override
     public void onActivityPaused(Activity activity) {
         // 取消这个吐司的显示
-        mToastHelper.cancel();
+        if(mToastHandler != null)
+            mToastHandler.removeView();
+        if(mToastHelper != null)
+            mToastHelper.cancel();
         // 不能放在 onStop 或者 onDestroyed 方法中，因为此时新的 Activity 已经创建完成，必须在这个新的 Activity 未创建之前关闭这个 WindowManager
         // 调用取消显示会直接导致新的 Activity 的 onCreate 调用显示吐司可能显示不出来的问题（立马显示然后立马消失的效果）
     }
@@ -96,10 +99,7 @@ final class ActivityLifecycleCallback implements Application.ActivityLifecycleCa
     @Override
     public void onActivityDestroyed(Activity activity) {
         // 移除对这个 Activity 的引用
-        Log.i("shihao","onActivityDestroyed mCurrentTag =="+mCurrentTag);
-        Log.i("shihao","onActivityDestroyed mActivityset .size =="+mActivitySet.size());
         mActivitySet.remove(getObjectTag(activity));
-        Log.e("shihao","onActivityDestroyed mActivityset .size11111 =="+mActivitySet.size());
         // 如果当前的 Activity 是最后一个的话
         if (getObjectTag(activity).equals(mCurrentTag)) {
             // 清除当前标记

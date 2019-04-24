@@ -4,7 +4,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.android.toastlib.toast.IToast;
 
@@ -18,18 +17,16 @@ import java.util.concurrent.ArrayBlockingQueue;
  *    desc   : Toast 显示处理类
  */
 public class ToastHandler extends Handler {
-    public static final int SHORT_DURATION_TIMEOUT = 2000; // 短吐司显示的时长
-    public static final int LONG_DURATION_TIMEOUT = 3500; // 长吐司显示的时长
-
     public static final int CONTINUE_SHORT_DURATION_TIMEOUT = 600; // 短吐司显示的时长
     public static final int CONTINUE_LONG_DURATION_TIMEOUT = 1000; // 长吐司显示的时长
+    private static final long MAX_CONTROL_INTERVAL = 500;
 
     private static final int TYPE_SHOW = 1; // 显示吐司
     private static final int TYPE_CONTINUE = 2; // 继续显示
     private static final int TYPE_CANCEL = 3; // 取消显示
 
     // 队列最大容量
-    private static final int MAX_TOAST_CAPACITY = 5;
+    private static final int MAX_TOAST_CAPACITY = 10;
 
     // 吐司队列
     private volatile Queue<CharSequence> mQueue;
@@ -39,6 +36,8 @@ public class ToastHandler extends Handler {
 
     // 吐司对象
     private final IToast mToast;
+    private long lastAddMsgTime = 0;
+    private CharSequence currentToastString = null;
 
     public ToastHandler(IToast toast) {
         super(Looper.getMainLooper());
@@ -47,17 +46,33 @@ public class ToastHandler extends Handler {
     }
 
     public void add(CharSequence s) {
-//        if (mQueue.isEmpty() || !mQueue.contains(s)) {
-//            // 添加一个元素并返回true，如果队列已满，则返回false
-//            if (!mQueue.offer(s)) {
+//        if (mQueue.isEmpty() || !mQueue.contains(s)){
+//            || isNeedAddMessage()) {
+//            lastAddMsgTime = System.currentTimeMillis();
+
+//            if(mQueue.offer(s)){// 成功添加一个元素并返回true，如果队列已满，则返回false
+
+//            }else{
 //                // 移除队列头部元素并添加一个新的元素
 //                mQueue.poll();
 //                mQueue.offer(s);
 //            }
 //        }
-        if (mQueue.isEmpty() || !mQueue.contains(s)) {
-            mQueue.offer(s);
+
+        if(!mQueue.contains(s) || isNeedAddMessage(s)){
+            if(mQueue.offer(s))
+                lastAddMsgTime = System.currentTimeMillis();
         }
+    }
+
+    private boolean isNeedAddMessage(CharSequence addString) {
+        if((System.currentTimeMillis() - lastAddMsgTime > MAX_CONTROL_INTERVAL)
+                && currentToastString != null
+                    && addString.toString().equalsIgnoreCase(currentToastString.toString())){
+            return true;
+        }
+
+        return false;
     }
 
     public void show() {
@@ -79,31 +94,27 @@ public class ToastHandler extends Handler {
         switch (msg.what) {
             case TYPE_SHOW:
                 // 返回队列头部的元素，如果队列为空，则返回null
-                Log.i("haozi","show mQueue.size 1111=="+mQueue.size());
-                CharSequence text = mQueue.poll();
+                CharSequence text = mQueue.peek();
                 if (text != null) {
-                    mToast.setMessageText(text);
-                    mToast.showToast();
+                    currentToastString = text.toString();
+                    mToast.showToast(text);
                     // 等这个 Toast 显示完后再继续显示，要加上一些延迟，不然在某些手机上 Toast 可能会来不及消失
                     sendEmptyMessageDelayed(TYPE_CONTINUE, getToastDuration(text));
-                    Log.i("haozi","show mQueue.size =="+mQueue.size());
                 }else {
                     isShow = false;
                 }
                 break;
             case TYPE_CONTINUE:
                 // 移除并返问队列头部的元素，如果队列为空，则返回null
-                Log.i("haozi","TYPE_CONTINUE mQueue.size2222 =="+mQueue.size());
-//                mQueue.poll();
-                Log.i("haozi","TYPE_CONTINUE mQueue.size1111 =="+mQueue.size());
+                mQueue.poll();
                 if (!mQueue.isEmpty()) {
                     sendEmptyMessage(TYPE_SHOW);
                 }else {
                     isShow = false;
+                    currentToastString = null;
                 }
                 break;
             case TYPE_CANCEL:
-                Log.i("haozi","TYPE_CANCEL mQueue.size =="+mQueue.size());
                 isShow = false;
                 mQueue.clear();
                 mToast.cancel();
@@ -117,13 +128,6 @@ public class ToastHandler extends Handler {
      * 根据文本来获取吐司的显示时间
      */
     private int getToastDuration (CharSequence text) {
-        // 如果显示的文字超过了10个就显示长吐司，否则显示短吐司
-        int durationTime = 0;
-        if(mQueue.size() > 0){
-            durationTime = text.length() > 20 ? CONTINUE_LONG_DURATION_TIMEOUT : CONTINUE_SHORT_DURATION_TIMEOUT;
-        }else{
-            durationTime = text.length() > 20 ? LONG_DURATION_TIMEOUT : SHORT_DURATION_TIMEOUT;
-        }
-        return durationTime;
+        return text.length() > 40 ? CONTINUE_LONG_DURATION_TIMEOUT : CONTINUE_SHORT_DURATION_TIMEOUT;
     }
 }

@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
-                ToastUtils.show("Replace with your own action",ToastUtils.TOP_STYLE);
+                ToastUtils.show("Replace with your own action");
             }
         });
     }
@@ -47,12 +47,12 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            ToastUtils.show("Replace with your own actionsdfadfadfasdfasdfasdfasdf",ToastUtils.TOP_STYLE);
-            ToastUtils.show("Replace with your own action",ToastUtils.SYSTEM_STYLE);
-            ToastUtils.show("Replace with your own actionf1111111111111",ToastUtils.TOP_STYLE);
-            ToastUtils.show("Replace with your own action1111112223232143413",ToastUtils.SYSTEM_STYLE);
-            ToastUtils.show("Replace with your own action222222222222",ToastUtils.TOP_STYLE);
-            ToastUtils.show("Replace with your own actionDDDDDDDDDDDDDD",ToastUtils.SYSTEM_STYLE);
+            ToastUtils.show("Replace with your own actionsdfadfadfasdfasdfasdfasdf");
+            ToastUtils.show("Replace with your own action",ToastUtils.SYSTEM_TOAST_STYLE);
+            ToastUtils.show("Replace with your own actionf1111111111111");
+            ToastUtils.show("Replace with your own action1111112223232143413",ToastUtils.SYSTEM_TOAST_STYLE);
+            ToastUtils.show("Replace with your own action222222222222");
+            ToastUtils.show("Replace with your own actionDDDDDDDDDDDDDD",ToastUtils.SYSTEM_TOAST_STYLE);
             return true;
         }
         if (id == R.id.action_settings1) {

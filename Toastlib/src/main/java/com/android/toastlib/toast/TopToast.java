@@ -10,13 +10,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.toastlib.R;
+import com.android.toastlib.ToastUtils;
 import com.android.toastlib.util.ScreenUtils;
 
 import java.lang.reflect.Field;
 
-public class TopToast implements IToast{
+public class TopToast implements IToast {
     private final static String TAG = "TopToast";
-    private static TextView messageView = null;
+    public static TextView messageView = null;
     public Toast toast = null;
 
     public TopToast(Context context) {
@@ -24,14 +25,11 @@ public class TopToast implements IToast{
     }
 
     @Override
-    public void setMessageText(CharSequence s) {
+    public void showToast(CharSequence s) {
         if(messageView != null){
             messageView.setText(s);
         }
-    }
-
-    @Override
-    public void showToast() {
+        toast.setDuration(Toast.LENGTH_SHORT);
         toast.show();
     }
 
@@ -48,7 +46,7 @@ public class TopToast implements IToast{
     private void initToast(Context context) {
         View toastView = LayoutInflater.from(context).inflate(R.layout.common_toast_layout,null);
         messageView = toastView.findViewById(R.id.common_toast_text);
-        toastView.setMinimumHeight(ScreenUtils.getActionBarHeight(context)+ScreenUtils.getStatusHeight(context));
+        toastView.setMinimumHeight(ScreenUtils.getActionBarHeight(context)+ ScreenUtils.getStatusHeight(context));
         toastView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         toast = new Toast(context);
         toast.setView(toastView);
@@ -75,10 +73,10 @@ public class TopToast implements IToast{
                     | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
         } catch (NoSuchFieldException e) {
             e.printStackTrace();
-            Log.e("haozi","e.to=="+e.toString());
+            Log.e(TAG,e.toString());
         } catch (IllegalAccessException e) {
             e.printStackTrace();
-            Log.e("haozi","e.to=="+e.toString());
+            Log.e(TAG,e.toString());
         }
     }
 }
